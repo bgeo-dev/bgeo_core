@@ -1,0 +1,7 @@
+[main]
+host = https://www.transifex.com
+
+[o:bgeo:p:bgeo:r:qt-translation-028x]
+file_filter = src/qt/locale/bgeo_<lang>.xlf
+source_file = src/qt/locale/bgeo_en.xlf
+source_lang = en

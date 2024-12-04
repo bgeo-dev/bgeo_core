@@ -1,0 +1,93 @@
+#!/sbin/openrc-run
+
+# backward compatibility for existing gentoo layout 
+#
+if [ -d "/var/lib/bgeo/.bgeo" ]; then
+	BGEOD_DEFAULT_DATADIR="/var/lib/bgeo/.bgeo"
+else
+	BGEOD_DEFAULT_DATADIR="/var/lib/bgeod"
+fi
+
+BGEOD_CONFIGFILE=${BGEOD_CONFIGFILE:-/etc/bgeo/bgeo.conf}
+BGEOD_PIDDIR=${BGEOD_PIDDIR:-/var/run/bgeod}
+BGEOD_PIDFILE=${BGEOD_PIDFILE:-${BGEOD_PIDDIR}/bgeod.pid}
+BGEOD_DATADIR=${BGEOD_DATADIR:-${BGEOD_DEFAULT_DATADIR}}
+BGEOD_USER=${BGEOD_USER:-${BGEO_USER:-bgeo}}
+BGEOD_GROUP=${BGEOD_GROUP:-bgeo}
+BGEOD_BIN=${BGEOD_BIN:-/usr/bin/bgeod}
+BGEOD_NICE=${BGEOD_NICE:-${NICELEVEL:-0}}
+BGEOD_OPTS="${BGEOD_OPTS:-${BGEO_OPTS}}"
+
+name="Bgeo Core Daemon"
+description="Bgeo cryptocurrency P2P network daemon"
+
+command="/usr/bin/bgeod"
+command_args="-pid=\"${BGEOD_PIDFILE}\" \
+		-conf=\"${BGEOD_CONFIGFILE}\" \
+		-datadir=\"${BGEOD_DATADIR}\" \
+		-daemon \
+		${BGEOD_OPTS}"
+
+required_files="${BGEOD_CONFIGFILE}"
+start_stop_daemon_args="-u ${BGEOD_USER} \
+			-N ${BGEOD_NICE} -w 2000"
+pidfile="${BGEOD_PIDFILE}"
+
+# The retry schedule to use when stopping the daemon. Could be either
+# a timeout in seconds or multiple signal/timeout pairs (like
+# "SIGKILL/180 SIGTERM/300")
+retry="${BGEOD_SIGTERM_TIMEOUT}"
+
+depend() {
+	need localmount net
+}
+
+# verify
+# 1) that the datadir exists and is writable (or create it)
+# 2) that a directory for the pid exists and is writable
+# 3) ownership and permissions on the config file
+start_pre() {
+	checkpath \
+	-d \
+	--mode 0750 \
+	--owner "${BGEOD_USER}:${BGEOD_GROUP}" \
+	"${BGEOD_DATADIR}"
+
+	checkpath \
+	-d \
+	--mode 0755 \
+	--owner "${BGEOD_USER}:${BGEOD_GROUP}" \
+	"${BGEOD_PIDDIR}"
+
+	checkpath -f \
+	-o "${BGEOD_USER}:${BGEOD_GROUP}" \
+	-m 0660 \
+	"${BGEOD_CONFIGFILE}"
+
+	checkconfig || return 1
+}
+
+checkconfig()
+{
+	if grep -qs '^rpcuser=' "${BGEOD_CONFIGFILE}" && \
+		! grep -qs '^rpcpassword=' "${BGEOD_CONFIGFILE}" ; then
+		eerror ""
+		eerror "ERROR: You must set a secure rpcpassword to run bgeod."
+		eerror "The setting must appear in ${BGEOD_CONFIGFILE}"
+		eerror ""
+		eerror "This password is security critical to securing wallets "
+		eerror "and must not be the same as the rpcuser setting."
+		eerror "You can generate a suitable random password using the following "
+		eerror "command from the shell:"
+		eerror ""
+		eerror "bash -c 'tr -dc a-zA-Z0-9 < /dev/urandom | head -c32 && echo'"
+		eerror ""
+		eerror "It is recommended that you also set alertnotify so you are "
+		eerror "notified of problems:"
+		eerror ""
+		eerror "ie: alertnotify=echo %%s | mail -s \"Bgeo Alert\"" \
+			"admin@foo.com"
+		eerror ""
+		return 1
+	fi
+}

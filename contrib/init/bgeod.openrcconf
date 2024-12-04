@@ -1,0 +1,33 @@
+# /etc/conf.d/bgeod: config file for /etc/init.d/bgeod
+
+# Config file location
+#BGEOD_CONFIGFILE="/etc/bgeo/bgeo.conf"
+
+# What directory to write pidfile to?  (created and owned by $BGEOD_USER)
+#BGEOD_PIDDIR="/var/run/bgeod"
+
+# What filename to give the pidfile
+#BGEOD_PIDFILE="${BGEOD_PIDDIR}/bgeod.pid"
+
+# Where to write bgeod data (be mindful that the blockchain is large)
+#BGEOD_DATADIR="/var/lib/bgeod"
+
+# User and group to own bgeod process
+#BGEOD_USER="bgeo"
+#BGEOD_GROUP="bgeo"
+
+# Path to bgeod executable
+#BGEOD_BIN="/usr/bin/bgeod"
+
+# Nice value to run bgeod under
+#BGEOD_NICE=0
+
+# Additional options (avoid -conf and -datadir, use flags above)
+#BGEOD_OPTS=""
+
+# The timeout in seconds OpenRC will wait for bgeod to terminate
+# after a SIGTERM has been raised.
+# Note that this will be mapped as argument to start-stop-daemon's
+# '--retry' option, which means you can specify a retry schedule
+# here. For more information see man 8 start-stop-daemon.
+BGEOD_SIGTERM_TIMEOUT=600

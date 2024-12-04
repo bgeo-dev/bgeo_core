@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+#
+#  bgeod The bgeo core server.
+#
+#
+# chkconfig: 345 80 20
+# description: bgeod
+# processname: bgeod
+#
+
+# Source function library.
+. /etc/init.d/functions
+
+# you can override defaults in /etc/sysconfig/bgeod, see below
+if [ -f /etc/sysconfig/bgeod ]; then
+        . /etc/sysconfig/bgeod
+fi
+
+RETVAL=0
+
+prog=bgeod
+# you can override the lockfile via BGEOD_LOCKFILE in /etc/sysconfig/bgeod
+lockfile=${BGEOD_LOCKFILE-/var/lock/subsys/bgeod}
+
+# bgeod defaults to /usr/bin/bgeod, override with BGEOD_BIN
+bgeod=${BGEOD_BIN-/usr/bin/bgeod}
+
+# bgeod opts default to -disablewallet, override with BGEOD_OPTS
+bgeod_opts=${BGEOD_OPTS--disablewallet}
+
+start() {
+    echo -n $"Starting $prog: "
+    daemon $DAEMONOPTS $bgeod $bgeod_opts
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch $lockfile
+    return $RETVAL
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc $prog -t600
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lockfile
+    return $RETVAL
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status $prog
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: service $prog {start|stop|status|restart}"
+        exit 1
+        ;;
+esac

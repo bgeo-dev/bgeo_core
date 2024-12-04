@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Bgeo Core Security Policy
+    url: https://github.com/bgeo-dev/bgeo-core/blob/master/SECURITY.md
+    about: View security policy
+  - name: Bgeo Core Developers
+    url: https://bgeo.io
+    about: Bgeo Core homepage
